@@ -1,0 +1,22 @@
+tensorflow==0.11.0
+
+# https://github.com/tensorflow/tensorflow/blob/v0.11.0/tensorflow/g3doc/get_started/os_setup.md
+#
+# Specifically, I use the following command
+#
+# Ubuntu/Linux 64-bit, CPU only, Python 2.7
+# $ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0-cp27-none-linux_x86_64.whl
+#
+# Ubuntu/Linux 64-bit, GPU enabled, Python 2.7
+# Requires CUDA toolkit 8.0 and CuDNN v5. For other versions, see "Install from sources" below.
+# $ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.11.0-cp27-none-linux_x86_64.whl
+# Python 2
+# $ sudo pip install --upgrade $TF_BINARY_URL
+
+tflearn==0.2.1
+scipy==1.1.0
+h5py==2.8.0
+
+
+
+
