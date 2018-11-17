@@ -72,7 +72,7 @@ directory, provided that you have cloned the saved model checkpoints in `tasks/a
 This will drop you into a REPL, where you can enter two numbers to be added, and step through the
 predicted execution trace. 
 
-Note that for the time being, numbers much be smaller than 1000000000. This is not because of any 
+Note that for the time being, numbers must be smaller than 1000000000. This is not because of any 
 limitations on the part of the NPI, but because of the backend helper functions that display the 
 trace.
 
