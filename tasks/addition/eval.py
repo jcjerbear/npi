@@ -25,7 +25,7 @@ def evaluate_addition():
     """
     with tf.Session() as sess:
         # Load Data
-        with open(TEST_PATH, 'r') as f:
+        with open(TEST_PATH, 'rb') as f:
             data = pickle.load(f)
 
         # Initialize Addition Core
@@ -53,7 +53,7 @@ def repl(session, npi, data):
             x, y = map(int, inpt.split())
 
         # Reset NPI States
-        print ""
+        print("")
         npi.reset_state()
 
         # Setup Environment
@@ -72,11 +72,11 @@ def repl(session, npi, data):
             else:
                 a_str = "[]"
 
-            print 'Step: %s, Arguments: %s, Terminate: %s' % (prog_name, a_str, str(term))
-            print 'IN 1: %s, IN 2: %s, CARRY: %s, OUT: %s' % (scratch.in1_ptr[1],
+            print('Step: %s, Arguments: %s, Terminate: %s' % (prog_name, a_str, str(term)))
+            print('IN 1: %s, IN 2: %s, CARRY: %s, OUT: %s' % (scratch.in1_ptr[1],
                                                               scratch.in2_ptr[1],
                                                               scratch.carry_ptr[1],
-                                                              scratch.out_ptr[1])
+                                                              scratch.out_ptr[1]))
 
             # Update Environment if MOVE or WRITE
             if prog_id == MOVE_PID or prog_id == WRITE_PID:
@@ -92,11 +92,11 @@ def repl(session, npi, data):
                                                     npi.prg_in: prog_in})
 
             if np.argmax(t) == 1:
-                print 'Step: %s, Arguments: %s, Terminate: %s' % (prog_name, a_str, str(True))
-                print 'IN 1: %s, IN 2: %s, CARRY: %s, OUT: %s' % (scratch.in1_ptr[1],
+                print('Step: %s, Arguments: %s, Terminate: %s' % (prog_name, a_str, str(True)))
+                print('IN 1: %s, IN 2: %s, CARRY: %s, OUT: %s' % (scratch.in1_ptr[1],
                                                                   scratch.in2_ptr[1],
                                                                   scratch.carry_ptr[1],
-                                                                  scratch.out_ptr[1])
+                                                                  scratch.out_ptr[1]))
                 # Update Environment if MOVE or WRITE
                 if prog_id == MOVE_PID or prog_id == WRITE_PID:
                     scratch.execute(prog_id, arg)
@@ -105,9 +105,9 @@ def repl(session, npi, data):
                 scratch.pretty_print()
 
                 output = int("".join(map(str, map(int, scratch[3]))))
-                print "Model Output: %s + %s = %s" % (str(x), str(y), str(output))
-                print "Correct Out : %s + %s = %s" % (str(x), str(y), str(x + y))
-                print "Correct!" if output == (x + y) else "Incorrect!"
+                print("Model Output: %s + %s = %s" % (str(x), str(y), str(output)))
+                print("Correct Out : %s + %s = %s" % (str(x), str(y), str(x + y)))
+                print("Correct!" if output == (x + y) else "Incorrect!")
 
             else:
                 prog_id = np.argmax(n_p)

@@ -9,32 +9,32 @@ import sys
 import time
 
 CONFIG = {
-    "ENVIRONMENT_ROW": 4,         # Input 1, Input 2, Carry, Output
-    "ENVIRONMENT_COL": 10,        # 10-Digit Maximum for Addition Task
-    "ENVIRONMENT_DEPTH": 10,      # Size of each element vector => One-Hot, Options: 0-9
+    "ENVIRONMENT_ROW": 4,  # Input 1, Input 2, Carry, Output
+    "ENVIRONMENT_COL": 10,  # 10-Digit Maximum for Addition Task
+    "ENVIRONMENT_DEPTH": 10,  # Size of each element vector => One-Hot, Options: 0-9
 
-    "ARGUMENT_NUM": 3,            # Maximum Number of Program Arguments
-    "ARGUMENT_DEPTH": 11,         # Size of Argument Vector => One-Hot, Options 0-9, Default (10)
-    "DEFAULT_ARG_VALUE": 10,      # Default Argument Value
+    "ARGUMENT_NUM": 3,  # Maximum Number of Program Arguments
+    "ARGUMENT_DEPTH": 11,  # Size of Argument Vector => One-Hot, Options 0-9, Default (10)
+    "DEFAULT_ARG_VALUE": 10,  # Default Argument Value
 
-    "PROGRAM_NUM": 6,             # Maximum Number of Subroutines
-    "PROGRAM_KEY_SIZE": 5,        # Size of the Program Keys
+    "PROGRAM_NUM": 6,  # Maximum Number of Subroutines
+    "PROGRAM_KEY_SIZE": 5,  # Size of the Program Keys
     "PROGRAM_EMBEDDING_SIZE": 10  # Size of the Program Embeddings
 }
 
 PROGRAM_SET = [
-    ("MOVE_PTR", 4, 2),       # Moves Pointer (4 options) either left or right (2 options)
-    ("WRITE", 2, 10),         # Given Carry/Out Pointer (2 options) writes digit (10 options)
-    ("ADD",),                 # Top-Level Add Program (calls children routines)
-    ("ADD1",),                # Single-Digit (Column) Add Operation
-    ("CARRY",),               # Carry Operation
-    ("LSHIFT",)               # Shifts all Pointers Left (after Single-Digit Add)
+    ("MOVE_PTR", 4, 2),  # Moves Pointer (4 options) either left or right (2 options)
+    ("WRITE", 2, 10),  # Given Carry/Out Pointer (2 options) writes digit (10 options)
+    ("ADD",),  # Top-Level Add Program (calls children routines)
+    ("ADD1",),  # Single-Digit (Column) Add Operation
+    ("CARRY",),  # Carry Operation
+    ("LSHIFT",)  # Shifts all Pointers Left (after Single-Digit Add)
 ]
 
 PROGRAM_ID = {x[0]: i for i, x in enumerate(PROGRAM_SET)}
 
 
-class ScratchPad():           # Addition Environment
+class ScratchPad():  # Addition Environment
     def __init__(self, in1, in2, rows=CONFIG["ENVIRONMENT_ROW"], cols=CONFIG["ENVIRONMENT_COL"]):
         # Setup Internal ScratchPad
         self.rows, self.cols = rows, cols
@@ -88,12 +88,12 @@ class ScratchPad():           # Addition Environment
     def pretty_print(self):
         new_strs = ["".join(map(str, self[i])) for i in range(4)]
         line_length = len('Input 1:' + " " * 5 + new_strs[0])
-        print 'Input 1:' + " " * 5 + new_strs[0]
-        print 'Input 2:' + " " * 5 + new_strs[1]
-        print 'Carry  :' + " " * 5 + new_strs[2]
-        print '-' * line_length
-        print 'Output :' + " " * 5 + new_strs[3]
-        print ''
+        print('Input 1:' + " " * 5 + new_strs[0])
+        print('Input 2:' + " " * 5 + new_strs[1])
+        print('Carry  :' + " " * 5 + new_strs[2])
+        print('-' * line_length)
+        print('Output :' + " " * 5 + new_strs[3])
+        print('')
         time.sleep(.1)
         sys.stdout.flush()
 
@@ -118,7 +118,7 @@ class ScratchPad():           # Addition Environment
         return env.flatten()
 
     def execute(self, prog_id, args):
-        if prog_id == 0:               # MOVE!
+        if prog_id == 0:  # MOVE!
             ptr, lr = args
             lr = (lr * 2) - 1
             if ptr == 0:
@@ -132,7 +132,7 @@ class ScratchPad():           # Addition Environment
             else:
                 raise NotImplementedError
             self.ptrs = [self.in1_ptr, self.in2_ptr, self.carry_ptr, self.out_ptr]
-        elif prog_id == 1:             # WRITE!
+        elif prog_id == 1:  # WRITE!
             ptr, val = args
             if ptr == 0:
                 self[self.out_ptr] = val
@@ -148,7 +148,7 @@ class ScratchPad():           # Addition Environment
         self.scratchpad[key] = value
 
 
-class Arguments():             # Program Arguments
+class Arguments():  # Program Arguments
     def __init__(self, args, num_args=CONFIG["ARGUMENT_NUM"], arg_depth=CONFIG["ARGUMENT_DEPTH"]):
         self.args = args
         self.arg_vec = np.zeros((num_args, arg_depth), dtype=np.float32)
@@ -170,4 +170,3 @@ def get_args(args, arg_in=True):
         for i in range(CONFIG["ARGUMENT_NUM"]):
             arg_vec[i][CONFIG["DEFAULT_ARG_VALUE"]] = 1
     return arg_vec.flatten() if arg_in else arg_vec
-

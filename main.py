@@ -23,7 +23,7 @@ def main(_):
     if FLAGS.task == "addition":
         # Generate Data (if necessary)
         if FLAGS.generate:
-            generate_addition('train', FLAGS.num_training)
+            generate_addition('train', FLAGS.num_training, maximum=100000)
             generate_addition('test', FLAGS.num_test)
 
         # Train Model (if necessary)

@@ -1,4 +1,4 @@
-tensorflow==0.11.0
+tensorflow==1.12.0
 
 # https://github.com/tensorflow/tensorflow/blob/v0.11.0/tensorflow/g3doc/get_started/os_setup.md
 #
