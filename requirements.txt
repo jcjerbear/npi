@@ -14,7 +14,7 @@ tensorflow==1.12.0
 # Python 2
 # $ sudo pip install --upgrade $TF_BINARY_URL
 
-tflearn==0.2.1
+tflearn==0.3.2
 scipy==1.1.0
 h5py==2.8.0
 
