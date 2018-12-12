@@ -69,8 +69,8 @@ class NPI():
         Zero NPI Core LSTM Hidden States. LSTM States are represented as a Tuple, consisting of the
         LSTM C State, and the LSTM H State (in that order: (c, h)).
         """
-        zero_state = tf.zeros([self.bsz, 2 * self.npi_core_dim])
-        self.h_states = [zero_state for _ in range(self.npi_core_layers)]
+        zero_state = tf.zeros([self.bsz, self.npi_core_dim])
+        self.h_states = [(zero_state, zero_state) for _ in range(self.npi_core_layers)]
 
     def npi_core(self):
         """
@@ -90,11 +90,11 @@ class NPI():
 
         # Feed through Multi-Layer LSTM
         for i in range(self.npi_core_layers):
-            c, [self.h_states[i]] = tflearn.lstm(c, self.npi_core_dim, return_seq=True,
-                                                 initial_state=self.h_states[i], return_states=True)
+            c, self.h_states[i] = tflearn.lstm(c, self.npi_core_dim, return_seq=True,
+                                                 initial_state=self.h_states[i], return_state=True)
 
         # Return Top-Most LSTM H-State
-        top_state = tf.split(1, 2, self.h_states[-1])[1]
+        top_state = self.h_states[-1][1]
         return top_state                                         # Shape: [bsz, npi_core_dim]
 
     def terminate_net(self):
@@ -121,7 +121,7 @@ class NPI():
         # Perform dot product operation, then softmax over all options to generate distribution
         key = tflearn.reshape(key, [-1, 1, self.key_dim])
         key = tf.tile(key, [1, self.num_progs, 1])             # Shape: [bsz, n_progs, key_dim]
-        prog_sim = tf.mul(key, self.core.program_key)          # Shape: [bsz, n_progs, key_dim]
+        prog_sim = tf.multiply(key, self.core.program_key)          # Shape: [bsz, n_progs, key_dim]
         prog_dist = tf.reduce_sum(prog_sim, [2])               # Shape: [bsz, n_progs]
         return prog_dist
 
@@ -145,17 +145,17 @@ class NPI():
         """
         # Termination Network Loss
         termination_loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
-            self.terminate, self.y_term), name='Termination_Network_Loss')
+            logits=self.terminate, labels=self.y_term), name='Termination_Network_Loss')
 
         # Program Network Loss
         program_loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
-            self.program_distribution, self.y_prog), name='Program_Network_Loss')
+            logits=self.program_distribution, labels=self.y_prog), name='Program_Network_Loss')
 
         # Argument Network Losses
         arg_losses = []
         for i in range(self.num_args):
             arg_losses.append(tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-                self.arguments[i], self.y_args[i]), name='Argument{}_Network_Loss'.format(str(i))))
+                logits=self.arguments[i], labels=self.y_args[i]), name='Argument{}_Network_Loss'.format(str(i))))
 
         return termination_loss, program_loss, arg_losses
 

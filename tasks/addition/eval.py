@@ -44,7 +44,7 @@ def evaluate_addition():
 
 def repl(session, npi, data):
     while True:
-        inpt = raw_input('Enter Two Numbers, or Hit Enter for Random Pair: ')
+        inpt = input('Enter Two Numbers, or Hit Enter for Random Pair: ')
 
         if inpt == "":
             x, y, _ = data[np.random.randint(len(data))]
@@ -60,8 +60,8 @@ def repl(session, npi, data):
         scratch = ScratchPad(x, y)
         prog_name, prog_id, arg, term = 'ADD', 2, [], False
 
-        cont = 'c'
-        while cont == 'c' or cont == 'C':
+        cont = '\n'
+        while cont != 'c' and cont != 'C':
             # Print Step Output
             if prog_id == MOVE_PID:
                 a0, a1 = PTRS.get(arg[0], "OOPS!"), R_L[arg[1]]
@@ -118,4 +118,4 @@ def repl(session, npi, data):
                     arg = []
                 term = False
 
-            cont = raw_input('Continue? ')
+            cont = input('Continue? ')
