@@ -122,11 +122,14 @@ def train_addition(epochs, verbose=0):
                         (tot_arg0_acc + tot_arg1_acc + tot_arg2_acc) / (3 * len(data)),
                         time.time() - start, tot_loss))
 
+        # testing
+        test_addition(ep)
+        
         # Save Model
         saver.save(sess, CKPT_PATH)
 
 
-def test_addition():
+def test_addition(epoch):
   """
   Load NPI Model from Checkpoint
   """
@@ -204,7 +207,7 @@ def test_addition():
         "Epoch {0:02d} Step {1:03d} Default Step Loss {2:05f}, " \
         "Argument Step Loss {3:05f}, Term: {4:03f}, Prog: {5:03f}, A0: {6:03f}, " \
         "A1: {7:03f}, A2: {8:03}" \
-          .format(0, i, step_def_loss / len(x), step_arg_loss / len(x), term_acc / len(x),
+          .format(epoch, i, step_def_loss / len(x), step_arg_loss / len(x), term_acc / len(x),
                   prog_acc / len(x), arg0_acc / num_args, arg1_acc / num_args,
                   arg2_acc / num_args))
       
@@ -217,6 +220,6 @@ def test_addition():
     
     print(
       "Finish epoch {0:02d}, Term: {1:03f}, Prog: {2:03f}, Args: {3:03f}, Loss: {4:03f}" \
-        .format(0, tot_term_acc / len(data), tot_prog_acc / len(data),
+        .format(epoch, tot_term_acc / len(data), tot_prog_acc / len(data),
                 (tot_arg0_acc + tot_arg1_acc + tot_arg2_acc) / (3 * len(data)), tot_loss))
       

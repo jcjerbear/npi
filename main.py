@@ -29,7 +29,6 @@ def main(_):
         # Train Model (if necessary)
         if FLAGS.do_train:
             train_addition(FLAGS.num_epochs)
-            test_addition()
           
         # Evaluate Model
         if FLAGS.do_eval:
