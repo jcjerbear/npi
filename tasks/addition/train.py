@@ -25,7 +25,7 @@ def train_addition(epochs, verbose=0):
     :param epochs: Number of epochs to train for.
     """
     # Load Data
-    with open(DATA_PATH, 'r') as f:
+    with open(DATA_PATH, 'rb') as f:
         data = pickle.load(f)
 
     # Initialize Addition Core

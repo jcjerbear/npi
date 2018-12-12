@@ -68,7 +68,7 @@ class ScratchPad():  # Addition Environment
 
     def add1(self):
         temp = self[self.in1_ptr] + self[self.in2_ptr] + self[self.carry_ptr]
-        return temp % 10, temp / 10
+        return temp % 10, temp // 10
 
     def write_carry(self, carry_val, debug=False):
         carry_row, carry_col = self.carry_ptr
