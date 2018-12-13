@@ -123,103 +123,92 @@ def train_addition(epochs, verbose=0):
                         time.time() - start, tot_loss))
 
         # testing
-        test_addition(ep)
+        test_addition(ep, sess, npi)
         
         # Save Model
         saver.save(sess, CKPT_PATH)
 
 
-def test_addition(epoch):
+def test_addition(epoch, sess, npi):
   """
   Load NPI Model from Checkpoint
   """
   
   print("Start Testing")
-  with tf.Session() as sess:
-    # Load Data
-    with open(TEST_DATA_PATH, 'rb') as f:
-      data = pickle.load(f)
-  
-    # Initialize Addition Core
-    core = AdditionCore()
-  
-    # Initialize NPI Model
-    npi = NPI(core, CONFIG, LOG_PATH)
-  
-    # Restore from Checkpoint
-    saver = tf.train.Saver()
-    saver.restore(sess, CKPT_PATH)
-  
-    # Start Training
-    tot_term_acc, tot_prog_acc, tot_loss = 0.0, 0.0, 0.0
-    tot_arg0_acc, tot_arg1_acc, tot_arg2_acc = 0.0, 0.0, 0.0
-    for i in range(len(data)):
-      # Reset NPI States
-      npi.reset_state()
-      
-      # Setup Environment
-      in1, in2, steps = data[i]
-      scratch = ScratchPad(in1, in2)
-      x, y = steps[:-1], steps[1:]
-      
-      # Run through steps, and fit!
-      step_def_loss, step_arg_loss, term_acc, prog_acc, = 0.0, 0.0, 0.0, 0.0
-      arg0_acc, arg1_acc, arg2_acc, num_args = 0.0, 0.0, 0.0, 0
-      for j in range(len(x)):
-        (prog_name, prog_in_id), arg, term = x[j]
-        (_, prog_out_id), arg_out, term_out = y[j]
-        
-        # Update Environment if MOVE or WRITE
-        if prog_in_id == MOVE_PID or prog_in_id == WRITE_PID:
-          scratch.execute(prog_in_id, arg)
-        
-        # Get Environment, Argument Vectors
-        env_in = [scratch.get_env()]
-        arg_in, arg_out = [get_args(arg, arg_in=True)], get_args(arg_out, arg_in=False)
-        prog_in, prog_out = [[prog_in_id]], [prog_out_id]
-        term_out = [1] if term_out else [0]
-        
-        # Fit!
-        if prog_out_id == MOVE_PID or prog_out_id == WRITE_PID:
-          loss, t_acc, p_acc, a_acc = sess.run(
-            [npi.arg_loss, npi.t_metric, npi.p_metric, npi.a_metrics],
-            feed_dict={npi.env_in: env_in, npi.arg_in: arg_in, npi.prg_in: prog_in,
-                       npi.y_prog: prog_out, npi.y_term: term_out,
-                       npi.y_args[0]: [arg_out[0]], npi.y_args[1]: [arg_out[1]],
-                       npi.y_args[2]: [arg_out[2]]})
-          step_arg_loss += loss
-          term_acc += t_acc
-          prog_acc += p_acc
-          arg0_acc += a_acc[0]
-          arg1_acc += a_acc[1]
-          arg2_acc += a_acc[2]
-          num_args += 1
-        else:
-          loss, t_acc, p_acc = sess.run(
-            [npi.default_loss, npi.t_metric, npi.p_metric],
-            feed_dict={npi.env_in: env_in, npi.arg_in: arg_in, npi.prg_in: prog_in,
-                       npi.y_prog: prog_out, npi.y_term: term_out})
-          step_def_loss += loss
-          term_acc += t_acc
-          prog_acc += p_acc
+  # Load Data
+  with open(TEST_DATA_PATH, 'rb') as f:
+    data = pickle.load(f)
 
-      print(
-        "Epoch {0:02d} Step {1:03d} Default Step Loss {2:05f}, " \
-        "Argument Step Loss {3:05f}, Term: {4:03f}, Prog: {5:03f}, A0: {6:03f}, " \
-        "A1: {7:03f}, A2: {8:03}" \
-          .format(epoch, i, step_def_loss / len(x), step_arg_loss / len(x), term_acc / len(x),
-                  prog_acc / len(x), arg0_acc / num_args, arg1_acc / num_args,
-                  arg2_acc / num_args))
-      
-      tot_term_acc += term_acc / len(x)
-      tot_prog_acc += prog_acc / len(x)
-      tot_arg0_acc += arg0_acc / num_args
-      tot_arg1_acc += arg1_acc / num_args
-      tot_arg2_acc += arg2_acc / num_args
-      tot_loss += (step_def_loss + step_arg_loss) / len(x)
+  # Start Training
+  tot_term_acc, tot_prog_acc, tot_loss = 0.0, 0.0, 0.0
+  tot_arg0_acc, tot_arg1_acc, tot_arg2_acc = 0.0, 0.0, 0.0
+  for i in range(len(data)):
+    # Reset NPI States
+    npi.reset_state()
     
-    print(
-      "Finish epoch {0:02d}, Term: {1:03f}, Prog: {2:03f}, Args: {3:03f}, Loss: {4:03f}" \
-        .format(epoch, tot_term_acc / len(data), tot_prog_acc / len(data),
-                (tot_arg0_acc + tot_arg1_acc + tot_arg2_acc) / (3 * len(data)), tot_loss))
+    # Setup Environment
+    in1, in2, steps = data[i]
+    scratch = ScratchPad(in1, in2)
+    x, y = steps[:-1], steps[1:]
+    
+    # Run through steps, and fit!
+    step_def_loss, step_arg_loss, term_acc, prog_acc, = 0.0, 0.0, 0.0, 0.0
+    arg0_acc, arg1_acc, arg2_acc, num_args = 0.0, 0.0, 0.0, 0
+    for j in range(len(x)):
+      (prog_name, prog_in_id), arg, term = x[j]
+      (_, prog_out_id), arg_out, term_out = y[j]
       
+      # Update Environment if MOVE or WRITE
+      if prog_in_id == MOVE_PID or prog_in_id == WRITE_PID:
+        scratch.execute(prog_in_id, arg)
+      
+      # Get Environment, Argument Vectors
+      env_in = [scratch.get_env()]
+      arg_in, arg_out = [get_args(arg, arg_in=True)], get_args(arg_out, arg_in=False)
+      prog_in, prog_out = [[prog_in_id]], [prog_out_id]
+      term_out = [1] if term_out else [0]
+      
+      # Fit!
+      if prog_out_id == MOVE_PID or prog_out_id == WRITE_PID:
+        loss, t_acc, p_acc, a_acc = sess.run(
+          [npi.arg_loss, npi.t_metric, npi.p_metric, npi.a_metrics],
+          feed_dict={npi.env_in: env_in, npi.arg_in: arg_in, npi.prg_in: prog_in,
+                     npi.y_prog: prog_out, npi.y_term: term_out,
+                     npi.y_args[0]: [arg_out[0]], npi.y_args[1]: [arg_out[1]],
+                     npi.y_args[2]: [arg_out[2]]})
+        step_arg_loss += loss
+        term_acc += t_acc
+        prog_acc += p_acc
+        arg0_acc += a_acc[0]
+        arg1_acc += a_acc[1]
+        arg2_acc += a_acc[2]
+        num_args += 1
+      else:
+        loss, t_acc, p_acc = sess.run(
+          [npi.default_loss, npi.t_metric, npi.p_metric],
+          feed_dict={npi.env_in: env_in, npi.arg_in: arg_in, npi.prg_in: prog_in,
+                     npi.y_prog: prog_out, npi.y_term: term_out})
+        step_def_loss += loss
+        term_acc += t_acc
+        prog_acc += p_acc
+
+    print(
+      "Epoch {0:02d} Step {1:03d} Default Step Loss {2:05f}, " \
+      "Argument Step Loss {3:05f}, Term: {4:03f}, Prog: {5:03f}, A0: {6:03f}, " \
+      "A1: {7:03f}, A2: {8:03}" \
+        .format(epoch, i, step_def_loss / len(x), step_arg_loss / len(x), term_acc / len(x),
+                prog_acc / len(x), arg0_acc / num_args, arg1_acc / num_args,
+                arg2_acc / num_args))
+    
+    tot_term_acc += term_acc / len(x)
+    tot_prog_acc += prog_acc / len(x)
+    tot_arg0_acc += arg0_acc / num_args
+    tot_arg1_acc += arg1_acc / num_args
+    tot_arg2_acc += arg2_acc / num_args
+    tot_loss += (step_def_loss + step_arg_loss) / len(x)
+  
+  print(
+    "Finish epoch {0:02d}, Term: {1:03f}, Prog: {2:03f}, Args: {3:03f}, Loss: {4:03f}" \
+      .format(epoch, tot_term_acc / len(data), tot_prog_acc / len(data),
+              (tot_arg0_acc + tot_arg1_acc + tot_arg2_acc) / (3 * len(data)), tot_loss))
+    
