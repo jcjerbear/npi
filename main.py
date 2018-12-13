@@ -28,7 +28,8 @@ def main(_):
 
         # Train Model (if necessary)
         if FLAGS.do_train:
-            train_addition(FLAGS.num_epochs)
+            # train_addition(FLAGS.num_epochs, method='supervise')
+            train_addition(FLAGS.num_epochs, method='hybrid', load="tasks/addition/log/model.ckpt")
           
         # Evaluate Model
         if FLAGS.do_eval:

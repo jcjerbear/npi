@@ -4,7 +4,9 @@ Core model definition script for the Neural Programmer-Interpreter.
 """
 import tensorflow as tf
 import tflearn
+import numpy as np
 
+MOVE_PID, WRITE_PID = 0, 1
 
 class NPI():
     def __init__(self, core, config, log_path, npi_core_dim=256, npi_core_layers=2, verbose=0):
@@ -31,6 +33,7 @@ class NPI():
         self.y_prog = tf.placeholder(tf.int64, shape=[None], name='Program_Y')
         self.y_args = [tf.placeholder(tf.int64, shape=[None, self.arg_depth],
                                       name='Arg{}_Y'.format(str(i))) for i in range(self.num_args)]
+        self.reward = tf.placeholder(tf.float32, name='reward')
 
         # Build NPI LSTM Core, hidden state
         self.reset_state()
@@ -49,6 +52,7 @@ class NPI():
         self.t_loss, self.p_loss, self.a_losses = self.build_losses()
         self.default_loss = 2 * self.t_loss + self.p_loss
         self.arg_loss = 0.25 * sum([self.t_loss, self.p_loss]) + sum(self.a_losses)
+        self.term_loss_rl, self.default_loss_rl = self.build_rl_losses()
 
         # Build Optimizer
         self.global_step = tf.Variable(0, trainable=False)
@@ -63,6 +67,8 @@ class NPI():
         # Build Train Ops
         self.default_train_op = self.opt.minimize(self.default_loss, global_step=self.global_step)
         self.arg_train_op = self.opt.minimize(self.arg_loss, global_step=self.global_step)
+        self.default_train_op_rl = self.opt.minimize(self.reward * self.default_loss_rl + self.term_loss_rl,
+                                                     global_step=self.global_step)
 
     def reset_state(self):
         """
@@ -139,6 +145,16 @@ class NPI():
             args.append(arg)
         return args                                             # Shape: [bsz, arg_depth]
 
+    def build_rl_losses(self):
+        log_prog_dis = tf.log(tf.reduce_max(tf.nn.softmax(self.program_distribution)))
+        log_term = tf.log(tf.reduce_max(tf.nn.softmax(self.terminate)))
+        log_args = tf.reduce_sum(tf.log(tf.reduce_max(tf.nn.softmax(self.arguments), axis=1)))
+
+        term_loss_rl = 0.25 * log_term
+        default_loss_rl = 0.25 * log_prog_dis + log_args
+        return term_loss_rl, default_loss_rl
+        
+        
     def build_losses(self):
         """
         Build separate loss computations, using the logits from each of the sub-networks.
