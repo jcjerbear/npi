@@ -32,7 +32,6 @@ def train_addition(epochs, method='supervise', load=None, verbose=0):
     # Load Data
     with open(DATA_PATH, 'rb') as f:
         data = pickle.load(f)
-
     # Initialize Addition Core
     print('Initializing Addition Core!')
     core = AdditionCore()
@@ -54,8 +53,10 @@ def train_addition(epochs, method='supervise', load=None, verbose=0):
     # Start Training
     start = time.time()
     for ep in range(1, epochs + 1):
+        test_addition(ep, sess, npi)
         tot_term_acc, tot_prog_acc, tot_loss = 0.0, 0.0, 0.0
         tot_arg0_acc, tot_arg1_acc, tot_arg2_acc= 0.0, 0.0, 0.0
+        eval_acc = 0
         for i in range(len(data)):
             # Reset NPI States
             npi.reset_state()
@@ -150,13 +151,23 @@ def train_addition(epochs, method='supervise', load=None, verbose=0):
                             arg = [np.argmax(n_args[0]), np.argmax(n_args[1])]
                         else:
                             arg = []
-                step_def_loss , step_arg_loss, _ = sess.run([npi.term_loss_rl,
-                                                            npi.default_loss_rl,
-                                                            npi.default_train_op_rl],
-                                                            feed_dict={npi.env_in: env_in, npi.arg_in: arg_in,
-                                                                       npi.prg_in: prog_in, npi.reward: reward})
-                print("Epoch {0:02d} Step {1:03d} Term Loss {2:05f}, Default Loss {3:05f}, Reward {4:01f}" \
-                        .format(ep, i, step_def_loss, step_arg_loss, reward))
+                
+                if method == 'hybrid':
+                    step_def_loss , step_arg_loss, _ = sess.run([npi.term_loss_rl,
+                                                                npi.default_loss_rl,
+                                                                npi.default_train_op_rl],
+                                                                feed_dict={npi.env_in: env_in, npi.arg_in: arg_in,
+                                                                           npi.prg_in: prog_in, npi.reward: reward})
+                    print("Epoch {0:02d} Step {1:03d} Term Loss {2:05f}, Default Loss {3:05f}, Reward {4:01f}" \
+                            .format(ep, i, step_def_loss, step_arg_loss, reward))
+                else:
+                    if np.argmax(t) == 1:
+                        scratch.execute(prog_id, arg)
+                    # scratch.pretty_print()
+                    print(int(scratch.out()), in1 + in2)
+                    if int(scratch.out()) == in1 + in2:
+                        eval_acc += 1
+                        
               
             tot_term_acc += term_acc / len(x)
             tot_prog_acc += prog_acc / len(x)
@@ -172,7 +183,10 @@ def train_addition(epochs, method='supervise', load=None, verbose=0):
                         time.time() - start, tot_loss))
 
         # testing
-        test_addition(ep, sess, npi)
+        if method != 'eval':
+            test_addition(ep, sess, npi)
+        else:
+            print("Eval acc:", eval_acc / len(data))
         
         # Save Model
         saver.save(sess, CKPT_PATH)

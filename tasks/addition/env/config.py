@@ -140,7 +140,11 @@ class ScratchPad():  # Addition Environment
                 self[self.carry_ptr] = val
             else:
                 raise NotImplementedError
-
+    
+    def out(self):
+        new_strs = ["".join(map(str, self[i])) for i in range(4)]
+        return new_strs[3]
+    
     def __getitem__(self, item):
         return self.scratchpad[item]
 

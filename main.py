@@ -16,20 +16,21 @@ tf.app.flags.DEFINE_integer("num_test", 100, "Number of test examples to generat
 
 tf.app.flags.DEFINE_boolean("do_train", True, "Boolean whether to continue training model.")
 tf.app.flags.DEFINE_boolean("do_eval", True, "Boolean whether to perform model evaluation.")
-tf.app.flags.DEFINE_integer("num_epochs", 2, "Number of training epochs to perform.")
+tf.app.flags.DEFINE_integer("num_epochs", 5, "Number of training epochs to perform.")
 
 
 def main(_):
     if FLAGS.task == "addition":
         # Generate Data (if necessary)
         if FLAGS.generate:
-            generate_addition('train', FLAGS.num_training, maximum=100000000)
+            generate_addition('train', FLAGS.num_training, maximum=1000000000)
             generate_addition('test', FLAGS.num_test)
 
         # Train Model (if necessary)
         if FLAGS.do_train:
-            # train_addition(FLAGS.num_epochs, method='supervise')
-            train_addition(FLAGS.num_epochs, method='hybrid', load="tasks/addition/log/model.ckpt")
+            # train_addition(FLAGS.num_epochs, method='supervise', load='tasks/addition/log/model_1000.ckpt')
+            # train_addition(FLAGS.num_epochs, method='hybrid', load="tasks/addition/log/model.ckpt")
+            train_addition(FLAGS.num_epochs, method='eval', load='tasks/addition/log/model_1000.ckpt')
           
         # Evaluate Model
         if FLAGS.do_eval:
